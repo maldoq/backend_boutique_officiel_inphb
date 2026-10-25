@@ -40,6 +40,19 @@ Générer une clé secrète :
 - Swagger : <http://localhost:8000/api/docs/> — schéma OpenAPI : <http://localhost:8000/api/schema/>
 - Django Admin (secours technique) : <http://localhost:8000/django-admin/>
 - API : `http://localhost:8000/api/v1/` (admin métier : `/api/v1/admin/`)
+- État du service : <http://localhost:8000/api/v1/health/> — configuration mobile/web :
+  <http://localhost:8000/api/v1/app/config/>
+
+## En-têtes HTTP reconnus (web et mobile)
+
+| En-tête             | Rôle                                                                                     |
+|---------------------|------------------------------------------------------------------------------------------|
+| `X-Visitor-Id`      | identifiant de visite anonyme (UUID v4) ; généré et renvoyé par le serveur s'il manque   |
+| `X-Client-Platform` | `web`, `android` ou `ios` (autre valeur : `unknown`)                                     |
+| `X-App-Version`     | version de l'application Flutter (ex. `1.2.0`)                                           |
+| `Idempotency-Key`   | sur `POST /api/v1/orders/` : évite les commandes en double lors des ré-essais            |
+
+Toutes les erreurs ont la forme `{"error": {"code", "message", "details"}}`.
 
 ## Commandes courantes
 

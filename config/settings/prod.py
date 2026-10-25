@@ -1,9 +1,12 @@
 """Production : HTTPS, HSTS, WhiteNoise, journaux JSON, documentation API réservée au personnel."""
 
 from .base import *  # noqa: F403
-from .base import LOGGING, MIDDLEWARE, SPECTACULAR_SETTINGS, env
+from .base import LOGGING, MIDDLEWARE, REST_FRAMEWORK, SPECTACULAR_SETTINGS, env
 
 DEBUG = False
+
+# Derrière Nginx : l'IP client réelle (throttling) est lue dans X-Forwarded-For.
+REST_FRAMEWORK = {**REST_FRAMEWORK, "NUM_PROXIES": env.int("DJANGO_NUM_PROXIES", default=1)}
 
 # --- HTTPS (derrière Nginx qui termine TLS) ---
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -21,6 +21,7 @@ DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = False
 
 DJANGO_ADMIN_URL = env("DJANGO_ADMIN_URL", default="django-admin/")
+API_VERSION = "1.0.0"
 
 # --- Applications (apps métier dans l'ordre de dépendance C.2) ---
 DJANGO_APPS = [
@@ -63,6 +64,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.core.middleware.VisitorHeaderMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -125,6 +127,8 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "apps.core.exceptions.api_exception_handler",
+    # Nombre de proxys de confiance devant Django (X-Forwarded-For) : 0 en local, 1 derrière Nginx.
+    "NUM_PROXIES": env.int("DJANGO_NUM_PROXIES", default=0),
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -165,7 +169,7 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 SPECTACULAR_SETTINGS = {
     "TITLE": "API Boutique INP-HB",
     "DESCRIPTION": "API unique du site web Angular, de l'admin Angular et de l'application Flutter.",
-    "VERSION": "1.0.0",
+    "VERSION": API_VERSION,
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": r"/api/v1",
