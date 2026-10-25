@@ -24,6 +24,17 @@ python manage.py migrate
 python manage.py runserver 0.0.0.0:8000
 ```
 
+Rôles et premier compte administrateur :
+
+```bash
+python manage.py setup_roles        # crée les 6 rôles (relançable sans risque)
+python manage.py createsuperuser    # premier compte, puis attribuer les rôles dans /django-admin/
+```
+
+Les comptes créés depuis Django Admin reçoivent un mot de passe temporaire : toute route métier de
+l'admin renvoie `403 password_change_required` tant qu'il n'a pas été changé via
+`POST /api/v1/admin/auth/change-password/`.
+
 Générer une clé secrète :
 `python -c "import secrets; print(secrets.token_urlsafe(50))"`
 
@@ -72,5 +83,8 @@ Toutes les erreurs ont la forme `{"error": {"code", "message", "details"}}`.
   concurrence sur le stock devront tourner sur PostgreSQL.
 - Paiement en ligne non connecté (décision D05).
 - MVP non conforme à une mise en production (D11).
+- Déconnexion admin : le refresh est révoqué immédiatement, mais un jeton d'accès déjà émis reste
+  valable jusqu'à son expiration (30 min max), fonctionnement normal des JWT. Un changement de mot de
+  passe, une désactivation ou un retrait du personnel, eux, invalident aussitôt tous les jetons.
 - `SECURE_HSTS_PRELOAD` désactivé par défaut : l'inscription à la liste de préchargement HSTS engage
   durablement le domaine et relève d'une décision de l'INP-HB.

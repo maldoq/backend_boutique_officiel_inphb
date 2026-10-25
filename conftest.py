@@ -20,3 +20,32 @@ def _isolated_cache():
     cache.clear()
     yield
     cache.clear()
+
+
+@pytest.fixture
+def make_staff(db):
+    """Fabrique de membres du personnel : make_staff("MARKETING", email=...)."""
+    from apps.accounts.tests.factories import UserFactory
+
+    def _make(*roles, **fields):
+        return UserFactory(roles=list(roles), **fields)
+
+    return _make
+
+
+@pytest.fixture
+def admin_api_client(make_staff):
+    """Client authentifié par JWT avec le(s) rôle(s) demandé(s) : admin_api_client("MARKETING").
+
+    (Nommé ainsi pour ne pas masquer la fixture `admin_client` fournie par pytest-django.)
+    """
+    from apps.accounts.tokens import issue_tokens
+
+    def _client(*roles, **fields):
+        user = make_staff(*roles, **fields)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {issue_tokens(user)['access']}")
+        client.user = user
+        return client
+
+    return _client

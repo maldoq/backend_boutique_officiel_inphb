@@ -8,7 +8,8 @@ import os
 import tempfile
 
 # Valeurs fictives utilisées seulement si l'environnement ne les fournit pas.
-os.environ.setdefault("DJANGO_SECRET_KEY", "test-only-not-a-secret")
+# ≥ 32 octets : clé de signature HMAC-SHA256 des JWT (RFC 7518 §3.2).
+os.environ.setdefault("DJANGO_SECRET_KEY", "test-only-not-a-secret-but-long-enough-for-hs256-signing")
 os.environ.setdefault("DJANGO_ALLOWED_HOSTS", "testserver,localhost")
 os.environ.setdefault("DATABASE_URL", "sqlite://:memory:")
 os.environ.setdefault("PUBLIC_WEB_BASE_URL", "http://boutique.test")

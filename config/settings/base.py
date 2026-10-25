@@ -115,7 +115,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024  # images de 5 Mo max (C.7) + marg
 # --- Django REST Framework ---
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # JWT simplejwt + invalidation des jetons après changement de mot de passe
+        "apps.accounts.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],  # refus par défaut
     "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPagination",
@@ -150,7 +151,7 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
-    "UPDATE_LAST_LOGIN": True,
+    # last_login est mis à jour par apps.accounts.services.login_staff (connexion réelle uniquement).
 }
 
 # --- CORS (navigateur Angular ; le mobile n'est pas concerné) ---
