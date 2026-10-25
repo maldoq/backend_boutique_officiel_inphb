@@ -14,6 +14,7 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.core.exceptions import BusinessError
+from apps.core.signals import emit_sensitive_change
 
 from .tokens import issue_tokens, password_fingerprint_matches
 
@@ -90,8 +91,8 @@ def revoke_all_sessions(user) -> int:
 
 
 @transaction.atomic
-def change_password(*, user, current_password: str, new_password: str) -> dict:
-    """Change le mot de passe, lève l'obligation de changement et ferme les autres sessions."""
+def change_password(*, user, current_password: str, new_password: str, request=None) -> dict:
+    """Change le mot de passe, lève l'obligation de changement, ferme les autres sessions, audite."""
     if not user.check_password(current_password):
         raise ValidationError({"current_password": ["Mot de passe actuel incorrect."]})
     if current_password == new_password:
@@ -100,8 +101,18 @@ def change_password(*, user, current_password: str, new_password: str) -> dict:
         validate_password(new_password, user=user)
     except DjangoValidationError as exc:
         raise ValidationError({"new_password": list(exc.messages)}) from exc
+    was_temporary = user.must_change_password
     user.set_password(new_password)
     user.must_change_password = False
     user.save(update_fields=["password", "must_change_password", "updated_at"])
-    revoke_all_sessions(user)
+    revoked = revoke_all_sessions(user)
+    emit_sensitive_change(
+        sender=type(user),
+        actor=user,
+        action="user.password_change",
+        obj=user,
+        # Aucune valeur de mot de passe : le journal ne garde que le fait et ses effets.
+        changes={"must_change_password": [was_temporary, False], "revoked_sessions": [None, revoked]},
+        request=request,
+    )
     return issue_tokens(user)

@@ -6,7 +6,12 @@ from django.test import RequestFactory
 from rest_framework.request import Request
 
 from apps.core.middleware import VisitorHeaderMiddleware
-from apps.core.request_context import get_app_version, get_client_platform, get_visitor_id
+from apps.core.request_context import (
+    get_app_version,
+    get_client_ip,
+    get_client_platform,
+    get_visitor_id,
+)
 
 VALID_V4 = "c0a8f1e2-5b7d-4c11-9e0a-2f6d3b8a9c10"
 
@@ -86,6 +91,17 @@ def test_middleware_sans_identifiant_n_ajoute_rien(rf):
 def test_client_platform(rf, header, expected):
     extra = {"HTTP_X_CLIENT_PLATFORM": header} if header is not None else {}
     assert get_client_platform(rf.get("/", **extra)) == expected
+
+
+def test_client_ip_local_ignore_x_forwarded_for(rf):
+    # NUM_PROXIES=0 (développement) : l'en-tête X-Forwarded-For, falsifiable, est ignoré.
+    request = rf.get("/", REMOTE_ADDR="192.168.1.10", HTTP_X_FORWARDED_FOR="1.2.3.4")
+    assert get_client_ip(request) == "192.168.1.10"
+    assert get_client_ip(Request(request)) == "192.168.1.10"
+
+
+def test_client_ip_invalide(rf):
+    assert get_client_ip(rf.get("/", REMOTE_ADDR="pas-une-ip")) is None
 
 
 @pytest.mark.parametrize(

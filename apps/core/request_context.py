@@ -1,8 +1,11 @@
-"""Contexte client lu dans les en-têtes : visiteur anonyme, canal, version de l'application."""
+"""Contexte client lu dans les en-têtes : visiteur anonyme, canal, version de l'application, IP."""
 
+import ipaddress
 import re
 import uuid
 from dataclasses import dataclass
+
+from rest_framework.throttling import BaseThrottle
 
 from .choices import Channel
 
@@ -54,6 +57,15 @@ def get_client_platform(request) -> str:
     """Canal client (web / android / ios), sinon unknown."""
     value = (_http_request(request).headers.get("X-Client-Platform") or "").strip().lower()
     return value if value in Channel.values and value != Channel.UNKNOWN else Channel.UNKNOWN
+
+
+def get_client_ip(request) -> str | None:
+    """IP du client, avec la même règle de proxys de confiance que le throttling (NUM_PROXIES)."""
+    ident = BaseThrottle().get_ident(request) or ""
+    try:
+        return str(ipaddress.ip_address(ident.strip()))
+    except ValueError:
+        return None
 
 
 def get_app_version(request) -> str | None:

@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 from .models import SiteSettings
+from .signals import emit_sensitive_change
 
 
 @admin.register(SiteSettings)
@@ -21,6 +22,25 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         ("Suivi", {"fields": ["created_at", "updated_at"]}),
     ]
     readonly_fields = ["created_at", "updated_at"]
+
+    def save_model(self, request, obj, form, change):
+        previous = SiteSettings.load()
+        super().save_model(request, obj, form, change)
+        # Valeurs réellement enregistrées (après normalisation), champs inchangés ignorés.
+        changes = {
+            name: [getattr(previous, name), getattr(obj, name)]
+            for name in form.changed_data
+            if getattr(previous, name) != getattr(obj, name)
+        }
+        if changes:
+            emit_sensitive_change(
+                sender=SiteSettings,
+                actor=request.user,
+                action="settings.update",
+                obj=obj,
+                changes=changes,
+                request=request,
+            )
 
     def has_add_permission(self, request):
         return False

@@ -35,6 +35,10 @@ Les comptes créés depuis Django Admin reçoivent un mot de passe temporaire : 
 l'admin renvoie `403 password_change_required` tant qu'il n'a pas été changé via
 `POST /api/v1/admin/auth/change-password/`.
 
+Journal d'audit : les opérations sensibles (comptes et rôles, paramètres, et à venir prix, stocks,
+statuts de commande, boxes, QR) sont tracées dans `AuditLog`, consultable en lecture seule dans
+`/django-admin/audit/auditlog/`. Les entrées sont inaltérables et aucune valeur secrète n'y est écrite.
+
 Générer une clé secrète :
 `python -c "import secrets; print(secrets.token_urlsafe(50))"`
 

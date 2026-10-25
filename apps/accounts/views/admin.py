@@ -17,6 +17,7 @@ from apps.accounts.serializers.admin import (
     SessionSerializer,
     TokenPairSerializer,
 )
+from apps.core.request_context import get_client_ip
 from apps.core.throttles import LoginThrottle
 
 TAGS = ["Admin — Authentification"]
@@ -50,7 +51,7 @@ class LoginView(APIView):
         user, tokens = services.login_staff(
             **serializer.validated_data,
             request=request,
-            client_ip=LoginThrottle().get_ident(request),
+            client_ip=get_client_ip(request) or "",
         )
         return _no_store(Response(_session_payload(user, tokens)))
 
@@ -114,5 +115,5 @@ class ChangePasswordView(APIView):
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        tokens = services.change_password(user=request.user, **serializer.validated_data)
+        tokens = services.change_password(user=request.user, request=request, **serializer.validated_data)
         return _no_store(Response(_session_payload(request.user, tokens)))
