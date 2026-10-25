@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir -r requirements/prod.txt
 COPY . .
 # collectstatic avec des valeurs factices (aucun secret dans l'image)
 RUN DJANGO_SETTINGS_MODULE=config.settings.prod DJANGO_SECRET_KEY=build DATABASE_URL=sqlite:///tmp.db \
-    PUBLIC_WEB_BASE_URL=http://x API_PUBLIC_BASE_URL=http://x python manage.py collectstatic --noinput
+    DJANGO_ALLOWED_HOSTS=localhost PUBLIC_WEB_BASE_URL=http://x API_PUBLIC_BASE_URL=http://x \
+    python manage.py collectstatic --noinput
 
 RUN useradd -m app && chown -R app /app
 USER app
