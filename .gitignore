@@ -1,0 +1,32 @@
+# Secrets (R13) : seul .env.example est versionné
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Django
+media/
+staticfiles/
+*.sqlite3
+db.sqlite3
+
+# Tests / qualité
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Éditeurs / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Documents de travail (spécification interne, non versionnée)
+Specification_Backend_Boutique_INP-HB.pdf

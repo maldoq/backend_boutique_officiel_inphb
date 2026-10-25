@@ -1,0 +1,21 @@
+[project]
+name = "boutique-inphb-api"
+version = "1.0.0"
+description = "API Django REST de la Boutique INP-HB (web Angular, admin Angular, mobile Flutter)"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "DJ"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "-ra"

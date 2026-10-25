@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-boutique_inphb}
+      POSTGRES_USER: ${POSTGRES_USER:-boutique}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-boutique}   # valeur de développement uniquement
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-boutique} -d ${POSTGRES_DB:-boutique_inphb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      # dans le conteneur, la base est joignable via le nom de service « db »
+      DATABASE_URL: postgres://${POSTGRES_USER:-boutique}:${POSTGRES_PASSWORD:-boutique}@db:5432/${POSTGRES_DB:-boutique_inphb}
+    command: python manage.py runserver 0.0.0.0:8000
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes: [".:/app"]
+
+volumes:
+  pgdata:
