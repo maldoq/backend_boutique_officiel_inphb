@@ -19,6 +19,11 @@ DEBUG = env.bool("DJANGO_DEBUG", default=False)
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = False
+if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
+    # Sans délai, une base injoignable bloque indéfiniment (constaté sous Windows) au lieu d'échouer.
+    DATABASES["default"].setdefault("OPTIONS", {}).setdefault(
+        "connect_timeout", env.int("DATABASE_CONNECT_TIMEOUT", default=5)
+    )
 
 DJANGO_ADMIN_URL = env("DJANGO_ADMIN_URL", default="django-admin/")
 API_VERSION = "1.0.0"
