@@ -58,6 +58,11 @@ Générer une clé secrète :
 - État du service : <http://localhost:8000/api/v1/health/> — configuration mobile/web :
   <http://localhost:8000/api/v1/app/config/>
 
+Catalogue public : `/api/v1/categories/`, `/api/v1/products/` (filtres `search`, `category`,
+`min_price`, `max_price`, `availability`, `featured`, `ordering`), `/api/v1/products/{slug}/` et
+`/api/v1/products/{slug}/related/`. Les URL d'images sont absolues : derrière Nginx, transmettre
+`proxy_set_header Host $host;` et `proxy_set_header X-Forwarded-Proto $scheme;` (URL en https).
+
 ## En-têtes HTTP reconnus (web et mobile)
 
 | En-tête             | Rôle                                                                                     |

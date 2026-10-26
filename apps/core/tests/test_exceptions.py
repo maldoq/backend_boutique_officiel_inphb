@@ -95,6 +95,20 @@ def test_throttled_indique_le_delai():
     assert response.data["error"]["details"] == {"retry_after": 13}
 
 
+@pytest.mark.django_db
+def test_hote_non_autorise_400_en_json(client):
+    response = client.get("/api/v1/health/", HTTP_HOST="pirate.example")
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "bad_request"
+
+
+@pytest.mark.django_db
+def test_hote_non_autorise_hors_api_reste_en_html(client):
+    response = client.get("/django-admin/", HTTP_HOST="pirate.example")
+    assert response.status_code == 400
+    assert "json" not in response["Content-Type"]
+
+
 def test_erreur_500_api_en_json_sans_detail_technique():
     response = server_error(RequestFactory().get("/api/v1/orders/"))
     assert response.status_code == 500

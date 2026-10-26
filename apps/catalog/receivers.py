@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import m2m_changed, post_delete
 from django.dispatch import receiver
 
-from .models import Category, Product, ProductImage, delete_files_on_commit
+from .models import Category, Product, ProductImage, ProductVariant, delete_files_on_commit
 
 
 @receiver(post_delete, sender=ProductImage, dispatch_uid="catalog.product_image_deleted")
@@ -17,6 +17,12 @@ def product_image_deleted(sender, instance: ProductImage, **kwargs):
         successor = remaining.first()
         if successor is not None:
             remaining.filter(pk=successor.pk).update(is_main=True)
+
+
+@receiver(post_delete, sender=ProductVariant, dispatch_uid="catalog.variant_deleted")
+def variant_deleted(sender, instance: ProductVariant, **kwargs):
+    """Le SKU supprimé ne doit plus faire remonter le produit dans la recherche."""
+    Product(pk=instance.product_id).refresh_search_text()
 
 
 @receiver(post_delete, sender=Category, dispatch_uid="catalog.category_deleted")

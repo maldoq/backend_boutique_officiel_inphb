@@ -65,6 +65,20 @@ def api_not_found(request, *args, **kwargs):
     return JsonResponse(error_payload("not_found", "Ressource introuvable."), status=404)
 
 
+def bad_request(request, exception=None):
+    """handler400 (ex. en-tête Host non autorisé) : JSON pour l'API."""
+    if _is_api_request(request):
+        return JsonResponse(error_payload("bad_request", "Requête invalide."), status=400)
+    return defaults.bad_request(request, exception)
+
+
+def permission_denied(request, exception=None):
+    """handler403 hors DRF (ex. CSRF) : JSON pour l'API."""
+    if _is_api_request(request):
+        return JsonResponse(error_payload("permission_denied", "Accès refusé."), status=403)
+    return defaults.permission_denied(request, exception)
+
+
 def page_not_found(request, exception=None):
     """handler404 : JSON pour l'API, page Django par défaut ailleurs (Django Admin…)."""
     if _is_api_request(request):

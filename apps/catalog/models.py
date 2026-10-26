@@ -13,6 +13,7 @@ from django.utils.text import slugify
 from apps.core.images import make_thumbnail, reencode_image, validate_uploaded_image
 from apps.core.models import SiteSettings, TimeStampedModel
 from apps.core.slugs import unique_slug
+from apps.core.text import normalize_search
 
 from .choices import AVAILABILITY_RANK, Availability
 
@@ -155,6 +156,8 @@ class Product(TimeStampedModel):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    # Nom, référence, description courte et SKU sans accents ni majuscules : « cle usb » trouve « Clé USB ».
+    search_text = models.TextField("texte de recherche", blank=True, editable=False)
 
     class Meta:
         verbose_name = "produit"
@@ -176,7 +179,16 @@ class Product(TimeStampedModel):
     def save(self, *args, **kwargs):
         self.reference = normalize_code(self.reference)
         self.slug = slugify(self.slug) if self.slug else unique_slug(self, self.name)
+        self.search_text = self.build_search_text()
         super().save(*args, **kwargs)
+
+    def build_search_text(self) -> str:
+        skus = list(self.variants.values_list("sku", flat=True)) if self.pk else []
+        return normalize_search(" ".join([self.name, self.reference, self.short_description, *skus]))
+
+    def refresh_search_text(self) -> None:
+        """Après ajout ou modification d'une variante (son SKU est cherchable)."""
+        Product.objects.filter(pk=self.pk).update(search_text=self.build_search_text())
 
     def clean_fields(self, exclude=None):
         # Normalisation AVANT les validateurs de champ (« inp-tex-001 » est accepté et corrigé).
@@ -356,6 +368,7 @@ class ProductVariant(TimeStampedModel):
         self.label = self.compute_label()
         self.sku = normalize_code(self.sku) if self.sku else self._generate_sku()
         super().save(*args, **kwargs)
+        self.product.refresh_search_text()
 
     def clean_fields(self, exclude=None):
         # Normalisation AVANT les validateurs de champ et le contrôle d'unicité des options.
