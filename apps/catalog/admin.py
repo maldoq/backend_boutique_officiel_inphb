@@ -12,8 +12,7 @@ from django.utils.html import format_html
 from apps.audit.services import log_action
 
 from .models import Category, Product, ProductImage, ProductVariant
-
-PRICE_FIELDS = {"price_xof", "compare_at_price_xof"}
+from .services import audit_changes
 
 
 def _changes(previous, current, fields) -> dict:
@@ -25,21 +24,7 @@ def _changes(previous, current, fields) -> dict:
 
 
 def _audit_update(request, obj, changes: dict, *, domain: str) -> None:
-    """Prix dans une entrée « <domaine>.price_change », le reste dans « <domaine>.update »."""
-    price_changes = {name: pair for name, pair in changes.items() if name in PRICE_FIELDS}
-    other_changes = {name: pair for name, pair in changes.items() if name not in PRICE_FIELDS}
-    if price_changes:
-        log_action(
-            actor=request.user,
-            action=f"{domain}.price_change",
-            obj=obj,
-            changes=price_changes,
-            request=request,
-        )
-    if other_changes:
-        log_action(
-            actor=request.user, action=f"{domain}.update", obj=obj, changes=other_changes, request=request
-        )
+    audit_changes(actor=request.user, obj=obj, changes=changes, domain=domain, request=request)
 
 
 @admin.register(Category)

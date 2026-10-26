@@ -4,7 +4,12 @@ import pytest
 
 from apps.audit.models import AuditLog
 from apps.catalog.models import Category, Product, ProductImage, ProductVariant
-from apps.catalog.tests.factories import CategoryFactory, ProductFactory, make_image_file
+from apps.catalog.tests.factories import (
+    CategoryFactory,
+    ProductFactory,
+    ProductImageFactory,
+    make_image_file,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -101,6 +106,38 @@ def test_creation_produit_avec_variantes_et_photo(staff_client):
 
     assert AuditLog.objects.filter(action="product.create", object_id=str(product.pk)).count() == 1
     assert AuditLog.objects.filter(action="variant.create").count() == 2
+
+
+def test_changer_l_image_principale_dans_l_admin(staff_client):
+    product = ProductFactory()
+    first = ProductImageFactory(product=product, position=0)
+    second = ProductImageFactory(product=product, position=1)
+    variant = product.variants.get()
+    data = product_data(
+        product.category,
+        reference=product.reference,
+        name=product.name,
+        slug=product.slug,
+        compare_at_price_xof="",
+        **management("variants", 1, initial=1),
+        **variant_fields(0, id=str(variant.pk), product=str(product.pk)),
+        **management("images", 2, initial=2),
+    )
+    for index, image in enumerate((first, second)):
+        data.update(
+            {
+                f"images-{index}-id": str(image.pk),
+                f"images-{index}-product": str(product.pk),
+                f"images-{index}-alt_text": "",
+                f"images-{index}-position": str(index),
+            }
+        )
+    data["images-1-is_main"] = "on"  # la seconde devient principale
+    response = staff_client.post(f"/django-admin/catalog/product/{product.pk}/change/", data)
+    assert response.status_code == 302, _errors(response)
+    first.refresh_from_db()
+    second.refresh_from_db()
+    assert second.is_main and not first.is_main
 
 
 def test_variante_standard_creee_sans_rien_saisir(staff_client):

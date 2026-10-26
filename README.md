@@ -67,6 +67,14 @@ Catalogue public : `/api/v1/categories/`, `/api/v1/products/` (filtres `search`,
 `/api/v1/products/{slug}/related/`. Les URL d'images sont absolues : derrière Nginx, transmettre
 `proxy_set_header Host $host;` et `proxy_set_header X-Forwarded-Proto $scheme;` (URL en https).
 
+Admin catalogue et stock (JWT + capacités) : `/api/v1/admin/categories/`, `/api/v1/admin/products/`
+(création avec `variants[]` et `initial_stock`, filtres `search`, `category`, `is_active`,
+`availability`, `low_stock`), `…/products/{id}/variants/`, `…/products/{id}/images/` (+ `reorder/`),
+`/api/v1/admin/variants/{id}/`, `/api/v1/admin/product-images/{id}/`,
+`/api/v1/admin/variants/{id}/stock-adjustments/`, `/api/v1/admin/stock/movements/`,
+`/api/v1/admin/stock/alerts/`. Suppression possible uniquement sans historique (sinon 409
+`resource_in_use` : désactiver).
+
 ## En-têtes HTTP reconnus (web et mobile)
 
 | En-tête             | Rôle                                                                                     |

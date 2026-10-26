@@ -272,6 +272,14 @@ class ProductImage(TimeStampedModel):
     def __str__(self):
         return self.alt_text or f"Image de {self.product}"
 
+    def get_constraints(self):
+        # « Une seule image principale » n'est pas une erreur de saisie : désigner une nouvelle
+        # principale retire l'ancienne à l'enregistrement. La contrainte reste garantie en base.
+        return [
+            (model, [c for c in constraints if c.name != "catalog_productimage_one_main"])
+            for model, constraints in super().get_constraints()
+        ]
+
     def save(self, *args, **kwargs):
         with transaction.atomic():
             if self.image and not self.image._committed:

@@ -16,6 +16,7 @@ from django.db.models import (
     Q,
     QuerySet,
     Subquery,
+    Sum,
     Value,
     When,
 )
@@ -93,6 +94,44 @@ def related_products(product: Product, default_threshold: int) -> list[Product]:
     if explicit:
         return explicit
     return list(base.filter(category_id=product.category_id)[:RELATED_FALLBACK_LIMIT])
+
+
+def admin_product_queryset(default_threshold: int, *, detail: bool = False) -> QuerySet[Product]:
+    """Produits pour l'admin : inactifs compris, stock cumulé, nombre de variantes, alerte de stock."""
+    variants = ProductVariant.objects.filter(product=OuterRef("pk"))
+    active = variants.filter(is_active=True)
+    queryset = annotate_listing(Product.objects.all(), default_threshold).annotate(
+        total_stock=Coalesce(
+            Subquery(active.values("product").annotate(total=Sum("stock_quantity")).values("total")[:1]), 0
+        ),
+        variant_count=Coalesce(
+            Subquery(variants.values("product").annotate(total=Count("id")).values("total")[:1]), 0
+        ),
+        has_low_stock=Exists(
+            active.annotate(limit=Coalesce("low_stock_threshold", Value(default_threshold))).filter(
+                stock_quantity__lte=F("limit")
+            )
+        ),
+    )
+    prefetch = [_images_prefetch()]
+    if detail:
+        prefetch += [
+            Prefetch("variants", queryset=ProductVariant.objects.order_by("position", "id")),
+            "related_products",
+        ]
+    return (
+        queryset.select_related("category", "created_by").prefetch_related(*prefetch).order_by("name", "id")
+    )
+
+
+def admin_category_queryset() -> QuerySet[Category]:
+    return (
+        Category.objects.select_related("parent")
+        .annotate(
+            product_count=Count("products", distinct=True), children_count=Count("children", distinct=True)
+        )
+        .order_by("parent__position", "position", "name", "id")
+    )
 
 
 def category_tree() -> list[dict]:
