@@ -39,6 +39,10 @@ Journal d'audit : les opérations sensibles (comptes et rôles, paramètres, et 
 statuts de commande, boxes, QR) sont tracées dans `AuditLog`, consultable en lecture seule dans
 `/django-admin/audit/auditlog/`. Les entrées sont inaltérables et aucune valeur secrète n'y est écrite.
 
+Stock : il ne change que par les services de `apps.inventory` (historique `StockMovement` inaltérable,
+ajustement dans Django Admin via « Ajuster le stock » sur la fiche produit). Vérifier la cohérence
+stock / historique : `python manage.py check_stock` (code de sortie non nul en cas d'écart).
+
 Générer une clé secrète :
 `python -c "import secrets; print(secrets.token_urlsafe(50))"`
 
@@ -87,9 +91,9 @@ Toutes les erreurs ont la forme `{"error": {"code", "message", "details"}}`.
 
 ## Limites connues
 
-- **Base SQLite en développement local** (en attendant PostgreSQL) : toléré par la décision D13, mais le
-  verrouillage de stock (`select_for_update`) n'est réellement garanti qu'avec PostgreSQL. Les tests de
-  concurrence sur le stock devront tourner sur PostgreSQL.
+- **Base SQLite en développement local** (en attendant PostgreSQL) : toléré par la décision D13. Le
+  stock reste sûr (mise à jour par requête conditionnelle « jamais sous 0 »), mais le test de
+  concurrence `apps/inventory/tests/test_concurrency.py` n'est exécuté qu'avec PostgreSQL.
 - Paiement en ligne non connecté (décision D05).
 - MVP non conforme à une mise en production (D11).
 - Déconnexion admin : le refresh est révoqué immédiatement, mais un jeton d'accès déjà émis reste

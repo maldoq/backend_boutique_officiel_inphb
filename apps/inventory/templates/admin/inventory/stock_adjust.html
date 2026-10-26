@@ -1,0 +1,57 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Accueil</a>
+  &rsaquo; <a href="{{ product_url }}">{{ variant.product }}</a>
+  &rsaquo; Ajuster le stock
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>
+    Variante <strong>{{ variant.label }}</strong> (SKU {{ variant.sku }}) —
+    stock actuel : <strong>{{ variant.stock_quantity }}</strong>
+  </p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<p class="errornote">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+    <fieldset class="module aligned">
+      {% for field in form %}
+      <div class="form-row{% if field.errors %} errors{% endif %}">
+        {{ field.errors }}
+        <div class="flex-container">
+          {{ field.label_tag }} {{ field }}
+        </div>
+        {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </fieldset>
+    <div class="submit-row">
+      <input type="submit" class="default" value="Enregistrer l'ajustement">
+      <a href="{{ product_url }}" class="closelink">Annuler</a>
+    </div>
+  </form>
+
+  <h2>Derniers mouvements</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Variation</th><th>Motif</th><th>Stock après</th><th>Auteur</th><th>Note</th></tr></thead>
+    <tbody>
+    {% for movement in history %}
+      <tr>
+        <td>{{ movement.created_at|date:"d/m/Y H:i" }}</td>
+        <td>{{ movement.delta|stringformat:"+d" }}</td>
+        <td>{{ movement.get_reason_display }}</td>
+        <td>{{ movement.balance_after }}</td>
+        <td>{{ movement.created_by.email|default:"système" }}</td>
+        <td>{{ movement.note }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">Aucun mouvement enregistré.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
