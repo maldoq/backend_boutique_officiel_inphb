@@ -49,9 +49,27 @@ class TrackingIpThrottle(IpRateThrottle):
     scope = "tracking_ip"
 
 
-class OrderCreateThrottle(IpRateThrottle):
+class OrderCreateThrottle(VisitorRateThrottle):
     scope = "order_create"
+
+
+class OrderCreateIpThrottle(IpRateThrottle):
+    scope = "order_create_ip"
 
 
 class OrderLookupThrottle(IpRateThrottle):
     scope = "order_lookup"
+
+
+class OrderLookupReferenceThrottle(SimpleRateThrottle):
+    """Essais de suivi par référence de commande, quelle que soit l'IP : empêche de tester des milliers
+    de numéros de téléphone sur une référence connue (en changeant d'IP)."""
+
+    scope = "order_lookup_reference"
+
+    def get_cache_key(self, request, view):
+        data = request.data if hasattr(request, "data") else {}
+        reference = "".join(str(data.get("public_reference", "")).split()).upper()[:16]
+        if not reference:
+            return None
+        return self.cache_format % {"scope": self.scope, "ident": reference}

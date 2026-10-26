@@ -145,8 +145,12 @@ REST_FRAMEWORK = {
         # Événements du tunnel : par visiteur, puis plafond par IP (une visite = plusieurs événements).
         "tracking": env("THROTTLE_TRACKING", default="120/min"),
         "tracking_ip": env("THROTTLE_TRACKING_IP", default="1200/min"),
-        "order_create": "10/min",
-        "order_lookup": "10/min",
+        # Commande : par visiteur, puis plafond par IP (heures de pointe sur le campus).
+        "order_create": env("THROTTLE_ORDER_CREATE", default="10/min"),
+        "order_create_ip": env("THROTTLE_ORDER_CREATE_IP", default="120/min"),
+        # Suivi : par IP, et par référence de commande (force brute sur le téléphone d'une référence connue).
+        "order_lookup": env("THROTTLE_ORDER_LOOKUP", default="60/min"),
+        "order_lookup_reference": env("THROTTLE_ORDER_LOOKUP_REFERENCE", default="10/hour"),
     },
 }
 

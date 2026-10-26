@@ -98,6 +98,19 @@ appliquée que si **ce visiteur a réellement scanné ce QR** dans les `ATTRIBUT
 Rétention : planifier chaque jour `python manage.py purge_tracking` (730 jours par défaut,
 `--dry-run` pour simuler).
 
+Panier et commande (invité, Click & Collect) : `GET /api/v1/pickup-points/`,
+`POST /api/v1/cart/validate/` (prix, stock et totaux serveur, sans rien enregistrer ; `price_changed`
+non bloquant), `POST /api/v1/orders/` (201 ; même `Idempotency-Key` et même contenu → 200 avec la même
+commande, contenu différent → 409 `idempotency_conflict`). Les prix envoyés par le client sont ignorés,
+le stock est réservé à la commande et la commande reste « Non payée » (paiement non connecté). Erreurs :
+409 `insufficient_stock` (toutes les variantes en défaut dans `details.items`), 409
+`product_unavailable`, 400 `quantity_limit_exceeded` (`MAX_QTY_PER_LINE` par variante, toutes lignes
+confondues), 400 `pickup_point_unavailable`, 503 `maintenance_mode`. Un `source_qr_code` non scanné
+par le visiteur n'est pas attribué (avertissement `attribution_ignored`). Suivi :
+`GET /api/v1/orders/{référence}/` (statut et lignes, nom masqué, sans code de retrait) et
+`POST /api/v1/orders/lookup/` (référence + téléphone → code de retrait ; 404 générique, essais limités
+par référence : `THROTTLE_ORDER_LOOKUP_REFERENCE`).
+
 ## En-têtes HTTP reconnus (web et mobile)
 
 | En-tête             | Rôle                                                                                     |
@@ -123,8 +136,9 @@ Toutes les erreurs ont la forme `{"error": {"code", "message", "details"}}`.
 ## Limites connues
 
 - **Base SQLite en développement local** (en attendant PostgreSQL) : toléré par la décision D13. Le
-  stock reste sûr (mise à jour par requête conditionnelle « jamais sous 0 »), mais le test de
-  concurrence `apps/inventory/tests/test_concurrency.py` n'est exécuté qu'avec PostgreSQL.
+  stock reste sûr (mise à jour par requête conditionnelle « jamais sous 0 »), mais les tests de
+  concurrence (`apps/inventory/tests/test_concurrency.py`, `apps/orders/tests/test_concurrency.py`)
+  ne s'exécutent qu'avec PostgreSQL.
 - Point de retrait initial « Boutique INP-HB Centre » (D09) créé avec son seul nom : **adresse,
   horaires et téléphone à compléter** dans `/django-admin/orders/pickuppoint/` (non communiqués, donc
   non inventés). Ils apparaissent dans `GET /api/v1/pickup-points/` et `GET /api/v1/app/config/`.
