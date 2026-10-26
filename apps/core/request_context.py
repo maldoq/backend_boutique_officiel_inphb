@@ -71,4 +71,8 @@ def get_client_ip(request) -> str | None:
 def get_app_version(request) -> str | None:
     """Version de l'application Flutter (X-App-Version), si elle est bien formée."""
     value = (_http_request(request).headers.get("X-App-Version") or "").strip()
-    return value if _APP_VERSION.match(value) else None
+    return value if is_app_version(value) else None
+
+
+def is_app_version(value) -> bool:
+    return isinstance(value, str) and bool(_APP_VERSION.match(value))

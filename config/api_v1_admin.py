@@ -7,4 +7,5 @@ urlpatterns = [
     path("", include("apps.catalog.urls.admin")),
     path("", include("apps.inventory.urls.admin")),
     path("", include("apps.boxes.urls.admin")),
+    path("", include("apps.tracking.urls.admin")),
 ]

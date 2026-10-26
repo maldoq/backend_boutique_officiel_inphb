@@ -41,8 +41,12 @@ class QrResolveIpThrottle(IpRateThrottle):
     scope = "qr_resolve_ip"
 
 
-class TrackingThrottle(IpRateThrottle):
+class TrackingThrottle(VisitorRateThrottle):
     scope = "tracking"
+
+
+class TrackingIpThrottle(IpRateThrottle):
+    scope = "tracking_ip"
 
 
 class OrderCreateThrottle(IpRateThrottle):

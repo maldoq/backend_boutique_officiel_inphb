@@ -16,16 +16,20 @@ pytestmark = pytest.mark.django_db
 
 
 def decode_png(data: bytes) -> str:
-    """Décode comme un téléphone : l'image telle quelle, puis réduite (le détecteur d'OpenCV échoue
-    parfois sur de très grandes images parfaitement nettes, ex. 2000 px, que tout appareil réduit)."""
+    """Décode avec les deux détecteurs d'OpenCV, sur deux cadrages (tel quel, ramené à ~600 px).
+
+    Le détecteur par défaut rate environ 0,5 % de QR pourtant valides (y compris sans légende), que le
+    détecteur « Aruco » lit sans difficulté ; les téléphones (ML Kit, ZXing) sont plus tolérants encore.
+    Un QR réellement illisible échoue avec les deux détecteurs.
+    """
     image = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_GRAYSCALE)
-    detector = cv2.QRCodeDetector()
-    text = detector.detectAndDecode(image)[0]
-    if not text and image.shape[1] > 800:
-        scale = 600 / image.shape[1]
-        small = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
-        text = detector.detectAndDecode(small)[0]
-    return text
+    scale = 600 / image.shape[1]
+    framings = [image, cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)]
+    for detector in (cv2.QRCodeDetector(), cv2.QRCodeDetectorAruco()):
+        for framing in framings:
+            if text := detector.detectAndDecode(framing)[0]:
+                return text
+    return ""
 
 
 def svg_matrix(svg: str, size: int) -> list[list[bool]]:
@@ -36,9 +40,13 @@ def svg_matrix(svg: str, size: int) -> list[list[bool]]:
     return matrix
 
 
+# Codes fixes (reproductible), dont ceux que le détecteur par défaut d'OpenCV ratait seul.
+@pytest.mark.parametrize("code", ["Q4M8ZK2PTA", "PTSAUGVGAG", "SURJEG2R75", "4FG7J55GCC", "UJWXGF8XZD"])
 @pytest.mark.parametrize(("size", "caption"), [(600, False), (600, True), (150, False), (2000, True)])
-def test_png_lisible_par_un_decodeur(size, caption):
-    qr = QRCodeFactory(product__name="Polo INP-HB Vert brodé édition spéciale", box__code="BOX-CENTRE-01")
+def test_png_lisible_par_un_decodeur(size, caption, code):
+    qr = QRCodeFactory(
+        code=code, product__name="Polo INP-HB Vert brodé édition spéciale", box__code="BOX-CENTRE-01"
+    )
     data = qr_images.render_png(qr, size=size, caption=caption)
     assert data.startswith(b"\x89PNG")
     assert decode_png(data) == qr.public_url

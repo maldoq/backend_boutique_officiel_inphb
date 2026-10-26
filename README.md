@@ -90,6 +90,14 @@ et `image_svg_url` sont des liens **signés valables 10 min**, utilisables direc
 lien de téléchargement (sans jeton). Un QR inactif ne s'imprime pas (409). Légendes : police
 DejaVu Sans (Docker : `fonts-dejavu-core`) ou Arial, réglable par `QR_CAPTION_FONT`.
 
+Traçabilité : `POST /api/v1/tracking/events/` (`product_view`, `add_to_cart`, `remove_from_cart`,
+`checkout_started`) et `POST /api/v1/tracking/events/batch/` (1 à 20, mobile hors ligne). Le client
+renvoie `source_qr_code` (objet `attribution` de la résolution) ; l'attribution à une box n'est
+appliquée que si **ce visiteur a réellement scanné ce QR** dans les `ATTRIBUTION_WINDOW_DAYS` jours
+(désactivable par `ATTRIBUTION_REQUIRES_SCAN=False`). Journal : `/api/v1/admin/tracking/events/`.
+Rétention : planifier chaque jour `python manage.py purge_tracking` (730 jours par défaut,
+`--dry-run` pour simuler).
+
 ## En-têtes HTTP reconnus (web et mobile)
 
 | En-tête             | Rôle                                                                                     |

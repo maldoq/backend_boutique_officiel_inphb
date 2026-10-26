@@ -124,7 +124,9 @@ def render_png(qr: QRCode, *, size: int = DEFAULT_SIZE, caption: bool = False) -
     module = max(1, size // count)
     side = module * count
     caption_height = round(side * CAPTION_RATIO) if caption else 0
-    image = Image.new("L", (side, side + caption_height), 255)
+    # Marge blanche sous la légende (comme la zone de silence) : le texte ne touche pas le bord.
+    bottom_margin = BORDER_MODULES * module if caption else 0
+    image = Image.new("L", (side, side + caption_height + bottom_margin), 255)
     draw = ImageDraw.Draw(image)
     for y, row in enumerate(matrix):
         for x, dark in enumerate(row):
@@ -151,7 +153,7 @@ def render_svg(qr: QRCode, *, size: int = DEFAULT_SIZE, caption: bool = False) -
     matrix = module_matrix(qr.public_url)
     count = len(matrix)
     caption_height = round(count * CAPTION_RATIO) if caption else 0
-    total_height = count + caption_height
+    total_height = count + caption_height + (BORDER_MODULES if caption else 0)  # marge sous la légende
     segments = []
     for y, row in enumerate(matrix):
         x = 0

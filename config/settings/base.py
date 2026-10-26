@@ -142,7 +142,9 @@ REST_FRAMEWORK = {
         # Scan de QR : par visiteur (IP + identifiant de visite) et plafond large par IP.
         "qr_resolve": env("THROTTLE_QR_RESOLVE", default="30/min"),
         "qr_resolve_ip": env("THROTTLE_QR_RESOLVE_IP", default="600/min"),
-        "tracking": "120/min",
+        # Événements du tunnel : par visiteur, puis plafond par IP (une visite = plusieurs événements).
+        "tracking": env("THROTTLE_TRACKING", default="120/min"),
+        "tracking_ip": env("THROTTLE_TRACKING_IP", default="1200/min"),
         "order_create": "10/min",
         "order_lookup": "10/min",
     },
@@ -209,6 +211,11 @@ QR_SCAN_DEDUP_SECONDS = env.int("QR_SCAN_DEDUP_SECONDS", default=10)
 # Police TrueType des légendes de QR (accents) ; vide : DejaVu Sans (Linux/Docker) ou Arial (Windows/macOS).
 QR_CAPTION_FONT = env("QR_CAPTION_FONT", default="")
 TRACKING_RETENTION_DAYS = env.int("TRACKING_RETENTION_DAYS", default=730)
+# Attribution à une box : seulement si ce visiteur a réellement scanné ce QR dans la fenêtre (R06).
+ATTRIBUTION_REQUIRES_SCAN = env.bool("ATTRIBUTION_REQUIRES_SCAN", default=True)
+ATTRIBUTION_WINDOW_DAYS = env.int("ATTRIBUTION_WINDOW_DAYS", default=7)
+# Une même consultation (même visiteur, même produit) dans cette fenêtre n'est comptée qu'une fois.
+TRACKING_DEDUP_SECONDS = env.int("TRACKING_DEDUP_SECONDS", default=10)
 DEFAULT_LOW_STOCK_THRESHOLD = env.int("DEFAULT_LOW_STOCK_THRESHOLD", default=3)
 
 PUBLIC_WEB_BASE_URL = env("PUBLIC_WEB_BASE_URL").rstrip("/")
