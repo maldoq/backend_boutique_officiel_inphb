@@ -32,7 +32,15 @@ class StockMovement(TimeStampedModel):
     delta = models.IntegerField("variation", help_text="Positif : entrée ; négatif : sortie.")
     reason = models.CharField("motif", max_length=30, choices=StockReason.choices)
     balance_after = models.PositiveIntegerField("stock après mouvement")
-    # Le lien vers la commande (order) est ajouté à l'étape 12 : `orders` vient après `inventory` (C.2).
+    # Référence par nom : `orders` vient après `inventory` (C.2), aucun import Python inversé.
+    order = models.ForeignKey(
+        "orders.Order",
+        verbose_name="commande",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="stock_movements",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name="auteur",

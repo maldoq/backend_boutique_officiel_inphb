@@ -24,7 +24,7 @@ class TrackingEvent(models.Model):
     """Événement anonyme du tunnel (R08) : ni nom, ni téléphone, ni e-mail, ni IP, ni navigateur.
 
     box et product sont COPIÉS au moment de l'événement : une réaffectation ultérieure du QR ne
-    change pas l'historique. Le lien vers la commande (order) est ajouté à l'étape 12.
+    change pas l'historique.
     """
 
     id = models.BigAutoField(primary_key=True)
@@ -59,6 +59,15 @@ class TrackingEvent(models.Model):
     variant = models.ForeignKey(
         ProductVariant,
         verbose_name="variante",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="tracking_events",
+    )
+    # Référence par nom : `orders` vient après `tracking` (C.2), aucun import Python inversé.
+    order = models.ForeignKey(
+        "orders.Order",
+        verbose_name="commande",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

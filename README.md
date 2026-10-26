@@ -125,6 +125,9 @@ Toutes les erreurs ont la forme `{"error": {"code", "message", "details"}}`.
 - **Base SQLite en développement local** (en attendant PostgreSQL) : toléré par la décision D13. Le
   stock reste sûr (mise à jour par requête conditionnelle « jamais sous 0 »), mais le test de
   concurrence `apps/inventory/tests/test_concurrency.py` n'est exécuté qu'avec PostgreSQL.
+- Point de retrait initial « Boutique INP-HB Centre » (D09) créé avec son seul nom : **adresse,
+  horaires et téléphone à compléter** dans `/django-admin/orders/pickuppoint/` (non communiqués, donc
+  non inventés). Ils apparaissent dans `GET /api/v1/pickup-points/` et `GET /api/v1/app/config/`.
 - Paiement en ligne non connecté (décision D05).
 - MVP non conforme à une mise en production (D11).
 - Déconnexion admin : le refresh est révoqué immédiatement, mais un jeton d'accès déjà émis reste

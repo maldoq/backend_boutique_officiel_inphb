@@ -11,6 +11,7 @@ l'attribution.
 """
 
 import re
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
@@ -178,3 +179,32 @@ def record_event(
         metadata=clean_metadata(metadata, app_version=app_version),
     )
     return RecordedEvent(event=event, recorded=True, attribution_applied=attribution is not None)
+
+
+def record_order_created(order) -> list[TrackingEvent]:
+    """Un événement order_created par QR source distinct des lignes, plus un sans source si au moins
+    une ligne n'est pas attribuée (ou si la commande n'a pas de ligne).
+
+    `order` est une commande de `apps.orders` (non importée : `orders` vient après `tracking`, C.2).
+    """
+    attributed, has_unattributed = {}, False
+    for item in order.items.all():
+        if item.source_qr_id:
+            attributed.setdefault(item.source_qr_id, item)
+        else:
+            has_unattributed = True
+    common = {
+        "event_type": EventType.ORDER_CREATED,
+        "visitor_id": order.visitor_id or uuid.uuid4(),
+        "channel": order.channel,
+        "order": order,
+    }
+    events = [
+        TrackingEvent(
+            **common, qr_id=item.source_qr_id, box_id=item.source_box_id, product_id=item.source_product_id
+        )
+        for item in attributed.values()
+    ]
+    if has_unattributed or not events:
+        events.append(TrackingEvent(**common))
+    return TrackingEvent.objects.bulk_create(events)

@@ -8,6 +8,7 @@ urlpatterns = [
     path("", include("apps.core.urls")),
     path("", include("apps.catalog.urls.public")),
     path("", include("apps.tracking.urls.public")),
+    path("", include("apps.orders.urls.public")),
     path("admin/", include("config.api_v1_admin")),
     # Toujours en dernier : toute route inconnue renvoie le format d'erreur C.5.
     re_path(r"^.*$", api_not_found),

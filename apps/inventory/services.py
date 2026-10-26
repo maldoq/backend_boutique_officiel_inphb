@@ -34,9 +34,12 @@ def _direction_error(reason: str, delta: int) -> str | None:
 
 
 def apply_movement(
-    *, variant: ProductVariant, delta: int, reason: str, user=None, note: str = ""
+    *, variant: ProductVariant, delta: int, reason: str, user=None, order=None, note: str = ""
 ) -> StockMovement:
-    """Applique delta au stock de la variante et l'historise ; refuse tout stock final négatif."""
+    """Applique delta au stock de la variante et l'historise ; refuse tout stock final négatif.
+
+    `order` : commande à l'origine du mouvement (réservation, annulation), sans import de `orders`.
+    """
     if not transaction.get_connection().in_atomic_block:
         raise RuntimeError("apply_movement doit être appelé dans une transaction (transaction.atomic).")
     if not isinstance(delta, int) or isinstance(delta, bool) or delta == 0:
@@ -69,6 +72,7 @@ def apply_movement(
         delta=delta,
         reason=reason,
         balance_after=current,
+        order=order,
         created_by=user,
         note=(note or "")[:NOTE_MAX_LENGTH],
     )

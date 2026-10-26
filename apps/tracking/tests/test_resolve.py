@@ -184,6 +184,7 @@ def test_aucune_donnee_personnelle_dans_les_evenements():
         "box",
         "product",
         "variant",
+        "order",  # simple lien (identifiant) : les coordonnées restent dans la commande, jamais copiées ici
         "quantity",
         "metadata",
     }

@@ -61,7 +61,8 @@ def test_app_config_contenu(api_client):
     assert data["payment"]["enabled"] is False
     assert "pas encore activé" in data["payment"]["message"]
     assert data["limits"] == {"max_qty_per_line": 10, "max_lines_per_order": 30}
-    assert data["pickup_points"] == []
+    # Fourni par apps.orders (étape 12) : point de retrait initial « Boutique INP-HB Centre ».
+    assert [point["code"] for point in data["pickup_points"]] == ["BOUTIQUE-CENTRE"]
     assert data["legal_pages"] == []
     assert data["maintenance_mode"] is False
 
