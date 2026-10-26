@@ -12,7 +12,7 @@ import tempfile
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-only-not-a-secret-but-long-enough-for-hs256-signing")
 os.environ.setdefault("DJANGO_ALLOWED_HOSTS", "testserver,localhost")
 os.environ.setdefault("DATABASE_URL", "sqlite://:memory:")
-os.environ.setdefault("PUBLIC_WEB_BASE_URL", "http://boutique.test")
+os.environ.setdefault("PUBLIC_WEB_BASE_URL", "https://boutique.test")  # https : QR imprimables
 os.environ.setdefault("API_PUBLIC_BASE_URL", "http://testserver")
 
 from .base import *  # noqa: E402, F403

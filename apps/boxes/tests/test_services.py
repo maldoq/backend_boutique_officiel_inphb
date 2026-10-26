@@ -64,7 +64,7 @@ def test_T23_un_qr_distinct_par_box_pour_le_meme_produit(agent):
     second = services.create_qr(box=esa, product=product, user=agent)
     assert first.code != second.code and first.public_url != second.public_url
     assert len(first.code) == 10 and set(first.code) <= set(ALPHABET)
-    assert first.public_url == f"http://boutique.test/q/{first.code}"
+    assert first.public_url == f"https://boutique.test/q/{first.code}"
     assert (first.created_by, first.is_active, first.activated_at is not None) == (agent, True, True)
     assert AuditLog.objects.filter(action="qr.create").count() == 2
 

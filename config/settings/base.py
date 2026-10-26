@@ -206,6 +206,8 @@ MAX_LINES_PER_ORDER = env.int("MAX_LINES_PER_ORDER", default=30)
 STOCK_POLICY = env("STOCK_POLICY", default="reserve_on_order")
 QR_CODE_LENGTH = env.int("QR_CODE_LENGTH", default=10)
 QR_SCAN_DEDUP_SECONDS = env.int("QR_SCAN_DEDUP_SECONDS", default=10)
+# Police TrueType des légendes de QR (accents) ; vide : DejaVu Sans (Linux/Docker) ou Arial (Windows/macOS).
+QR_CAPTION_FONT = env("QR_CAPTION_FONT", default="")
 TRACKING_RETENTION_DAYS = env.int("TRACKING_RETENTION_DAYS", default=730)
 DEFAULT_LOW_STOCK_THRESHOLD = env.int("DEFAULT_LOW_STOCK_THRESHOLD", default=3)
 

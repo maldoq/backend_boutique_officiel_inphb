@@ -2,6 +2,7 @@ from django import forms
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
+from apps.core.filters import strict_boolean
 from apps.core.text import search_terms
 
 from .choices import Availability
@@ -17,16 +18,6 @@ ORDERINGS = {
     "-created_at": ("-created_at", "-id"),
 }
 ADMIN_ORDERINGS = {**ORDERINGS, "updated_at": ("updated_at", "id"), "-updated_at": ("-updated_at", "-id")}
-
-
-def strict_boolean(field_name: str, **kwargs):
-    """Filtre oui/non strict : toute valeur autre que true/false renvoie 400 (au lieu d'être ignorée)."""
-    return filters.TypedChoiceFilter(
-        field_name=field_name,
-        choices=[("true", "true"), ("false", "false")],
-        coerce=lambda value: value == "true",
-        **kwargs,
-    )
 
 
 class ProductFilterForm(forms.Form):

@@ -83,6 +83,13 @@ l'application appellent ensuite `GET /api/v1/qr/{code}/resolve/` (404 `qr_not_fo
 (`THROTTLE_ANON`, `THROTTLE_QR_RESOLVE`, `THROTTLE_QR_RESOLVE_IP`) : sur le campus, de nombreux
 visiteurs partagent la même IP publique.
 
+Admin boxes et QR (JWT + `boxes.view` / `boxes.manage`) : `/api/v1/admin/boxes/` (+ `{id}/qr-codes/`),
+`/api/v1/admin/qr-codes/` (+ `{id}/deactivate/`, `activate/`, `regenerate/`, `reassign/`, `history/`)
+et `/api/v1/admin/qr-codes/{id}/image/?format=png|svg&size=600&caption=1`. Les champs `image_png_url`
+et `image_svg_url` sont des liens **signés valables 10 min**, utilisables directement dans `<img>` ou un
+lien de téléchargement (sans jeton). Un QR inactif ne s'imprime pas (409). Légendes : police
+DejaVu Sans (Docker : `fonts-dejavu-core`) ou Arial, réglable par `QR_CAPTION_FONT`.
+
 ## En-têtes HTTP reconnus (web et mobile)
 
 | En-tête             | Rôle                                                                                     |

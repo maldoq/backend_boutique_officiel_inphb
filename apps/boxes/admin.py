@@ -3,16 +3,20 @@
 Le code d'un QR n'est jamais modifiable ; la suppression est désactivée (on désactive, D.4).
 """
 
+from urllib.parse import urlencode
+
 from django import forms
 from django.contrib import admin, messages
 from django.db.models import Count, Q
-from django.utils.html import format_html
+from django.urls import reverse
+from django.utils.html import format_html, format_html_join
 from rest_framework.exceptions import ValidationError
 
 from apps.core.exceptions import BusinessError
 
 from . import services
 from .models import Box, QRCode
+from .signing import sign_image
 
 
 def _messages_of(exc) -> list[str]:
@@ -101,6 +105,7 @@ class QRCodeAdmin(admin.ModelAdmin):
     readonly_fields = [
         "code",
         "public_url_link",
+        "image_links",
         "replaced_by",
         "activated_at",
         "deactivated_at",
@@ -114,7 +119,10 @@ class QRCodeAdmin(admin.ModelAdmin):
         if obj is None:  # le code est généré : seule la destination se choisit
             return [(None, {"fields": ["box", "product", "note"]})]
         return [
-            (None, {"fields": ["code", "public_url_link", "box", "product", "is_active", "note"]}),
+            (
+                None,
+                {"fields": ["code", "public_url_link", "image_links", "box", "product", "is_active", "note"]},
+            ),
             (
                 "Historique",
                 {
@@ -145,6 +153,16 @@ class QRCodeAdmin(admin.ModelAdmin):
     @admin.display(description="URL encodée dans le QR")
     def public_url_link(self, obj):
         return format_html('<a href="{0}" target="_blank" rel="noopener">{0}</a>', obj.public_url)
+
+    @admin.display(description="images à imprimer")
+    def image_links(self, obj):
+        if not obj.is_active:
+            return "QR inactif : impression désactivée."
+        links = []
+        for fmt in ("png", "svg"):
+            query = urlencode({"format": fmt, "caption": "1", "sig": sign_image(obj.pk, fmt)})
+            links.append((f"{reverse('admin-qr-image', args=[obj.pk])}?{query}", fmt.upper()))
+        return format_html_join(" · ", '<a href="{}">Télécharger {}</a>', links)
 
     def has_delete_permission(self, request, obj=None):
         return False

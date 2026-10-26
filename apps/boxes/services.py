@@ -70,6 +70,17 @@ def set_box_active(*, box: Box, active: bool, user, request=None) -> Box:
     return update_box(box=box, data={"is_active": active}, user=user, request=request)
 
 
+@transaction.atomic
+def delete_box(*, box: Box, user, request=None) -> None:
+    """Seule une box vierge (aucun QR, aucun scan) se supprime ; sinon on la désactive."""
+    if box.qr_codes.exists() or box.tracking_events.exists():
+        raise ConflictError(
+            "Cette box a des QR codes ou des scans : désactivez-la plutôt.", code="resource_in_use"
+        )
+    log_action(actor=user, action="box.delete", obj=box, request=request)
+    box.delete()
+
+
 # --- QR codes ------------------------------------------------------------------------
 
 

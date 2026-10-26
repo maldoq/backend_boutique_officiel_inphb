@@ -5,3 +5,5 @@ pytest-cov>=5.0
 factory-boy>=3.3
 freezegun>=1.5
 ruff>=0.7
+# Tests uniquement : décode les QR générés pour vérifier qu'ils sont lisibles (jamais en production)
+opencv-python-headless>=4.10

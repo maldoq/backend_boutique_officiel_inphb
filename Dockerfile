@@ -3,7 +3,8 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends libjpeg62-turbo zlib1g \
+# fonts-dejavu-core : police complète (accents) pour les légendes des QR imprimés
+RUN apt-get update && apt-get install -y --no-install-recommends libjpeg62-turbo zlib1g fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements/ requirements/
