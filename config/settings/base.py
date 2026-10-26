@@ -135,10 +135,13 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "300/min",
+        # Par IP : sur le campus, de nombreux visiteurs partagent la même IP publique (NAT, Wi-Fi).
+        "anon": env("THROTTLE_ANON", default="2000/min"),
         "user": "1000/min",
         "login": "5/min",
-        "qr_resolve": "60/min",
+        # Scan de QR : par visiteur (IP + identifiant de visite) et plafond large par IP.
+        "qr_resolve": env("THROTTLE_QR_RESOLVE", default="30/min"),
+        "qr_resolve_ip": env("THROTTLE_QR_RESOLVE_IP", default="600/min"),
         "tracking": "120/min",
         "order_create": "10/min",
         "order_lookup": "10/min",

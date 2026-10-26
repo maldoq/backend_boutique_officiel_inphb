@@ -75,6 +75,14 @@ Admin catalogue et stock (JWT + capacités) : `/api/v1/admin/categories/`, `/api
 `/api/v1/admin/stock/alerts/`. Suppression possible uniquement sans historique (sinon 409
 `resource_in_use` : désactiver).
 
+Boxes et QR codes : gérés dans `/django-admin/boxes/` (création, désactivation, régénération,
+réaffectation, toutes auditées). Un QR imprimé encode `PUBLIC_WEB_BASE_URL/q/<code>` ; le site et
+l'application appellent ensuite `GET /api/v1/qr/{code}/resolve/` (404 `qr_not_found`, 410
+`qr_inactive`). **Avant toute impression**, `PUBLIC_WEB_BASE_URL` doit être le domaine public en https :
+`python manage.py check --deploy` le signale (`core.W001`). Limites de débit réglables
+(`THROTTLE_ANON`, `THROTTLE_QR_RESOLVE`, `THROTTLE_QR_RESOLVE_IP`) : sur le campus, de nombreux
+visiteurs partagent la même IP publique.
+
 ## En-têtes HTTP reconnus (web et mobile)
 
 | En-tête             | Rôle                                                                                     |
