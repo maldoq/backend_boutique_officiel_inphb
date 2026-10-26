@@ -51,7 +51,7 @@ class SiteSettings(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         self.pk = self.SINGLETON_PK
-        if self._state.adding:
+        if self._state.adding and not kwargs.get("force_insert"):
             # Nouvelle instance alors que la ligne existe : on la met à jour en gardant sa date de création.
             created_at = type(self).objects.filter(pk=self.pk).values_list("created_at", flat=True).first()
             if created_at is not None:

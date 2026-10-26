@@ -68,6 +68,12 @@ def validate_image(file) -> str:
     return image_format
 
 
+def validate_uploaded_image(value) -> None:
+    """Validateur de champ ImageField : contrôle les nouveaux fichiers, pas ceux déjà enregistrés."""
+    if value and not getattr(value, "_committed", False):
+        validate_image(value)
+
+
 def _open_upright(file) -> Image.Image:
     file.seek(0)
     with Image.open(file) as source:
